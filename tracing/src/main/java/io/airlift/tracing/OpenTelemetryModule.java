@@ -63,6 +63,7 @@ public class OpenTelemetryModule
                 .putAll(attribute(ResourceAttributes.OS_NAME, OS_NAME.value()))
                 .putAll(attribute(ResourceAttributes.OS_VERSION, OS_VERSION.value()))
                 .putAll(attribute(ResourceAttributes.HOST_ARCH, hostArch()));
+        config.getResourceAttributes().forEach(attributes::put);
 
         Resource resource = Resource.getDefault().merge(Resource.create(attributes.build()));
 
