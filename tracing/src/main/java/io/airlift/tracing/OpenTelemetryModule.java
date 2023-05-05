@@ -18,6 +18,10 @@ import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
 import io.opentelemetry.sdk.trace.export.SpanExporter;
 import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.Map;
+
 import static com.google.common.base.StandardSystemProperty.JAVA_VM_NAME;
 import static com.google.common.base.StandardSystemProperty.JAVA_VM_VENDOR;
 import static com.google.common.base.StandardSystemProperty.JAVA_VM_VERSION;
@@ -26,6 +30,8 @@ import static com.google.common.base.StandardSystemProperty.OS_NAME;
 import static com.google.common.base.StandardSystemProperty.OS_VERSION;
 import static com.google.common.base.Strings.nullToEmpty;
 import static io.airlift.configuration.ConfigBinder.configBinder;
+import static io.airlift.configuration.ConfigurationLoader.loadPropertiesFrom;
+import static io.airlift.configuration.ConfigurationUtils.replaceEnvironmentVariables;
 import static io.airlift.tracing.Tracing.attribute;
 import static java.util.Objects.requireNonNull;
 
@@ -63,6 +69,16 @@ public class OpenTelemetryModule
                 .putAll(attribute(ResourceAttributes.OS_NAME, OS_NAME.value()))
                 .putAll(attribute(ResourceAttributes.OS_VERSION, OS_VERSION.value()))
                 .putAll(attribute(ResourceAttributes.HOST_ARCH, hostArch()));
+
+        if (config.getResourceAttributesFile() != null) {
+            try {
+                Map<String, String> resourceAttributes = replaceEnvironmentVariables(loadPropertiesFrom(config.getResourceAttributesFile()));
+                resourceAttributes.forEach(attributes::put);
+            }
+            catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
 
         Resource resource = Resource.getDefault().merge(Resource.create(attributes.build()));
 

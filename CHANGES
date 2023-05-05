@@ -1,3 +1,7 @@
+231
+
+- Allow setting additional OpenTelemetry resource attributes
+
 230
 
 - Remove broken uncaught exception handler from Bootstrap
